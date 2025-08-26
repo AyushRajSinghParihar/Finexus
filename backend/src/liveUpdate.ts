@@ -12,9 +12,6 @@ const client = new pg.Client({
 
 client.connect();
 
-async function initializeConnection() {
-    await client.connect();
-};
 // Websocket logic
 ws.on('open', ()=> {
     console.log('WebSocket connection established');
@@ -38,7 +35,7 @@ ws.on('message', (data)=> {
         trade_time, 
         market_maker,
         time
-    ) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`
+    ) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 
     const timeObject = new Date(streamData.E);
 
@@ -46,20 +43,24 @@ ws.on('message', (data)=> {
         streamData.e,
         streamData.E,
         streamData.s,
-        streamData.a,
-        streamData.p,
-        streamData.q,
+        Number(streamData.a),
+        Number(streamData.p),
+        Number(streamData.q),
         streamData.T,
         streamData.m,
         timeObject
     ]
     async function dataIngestion() {
+    try{
         await client.query(insertData, values);
     }
+    catch (err) {
+        console.error('Error inserting data: ', err);
+    }
+}
     dataIngestion();
 })
 
 ws.on('close', ()=> {
     console.log('WebSocket connection closed');
 })
-
