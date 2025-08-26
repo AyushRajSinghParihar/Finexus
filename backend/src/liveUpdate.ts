@@ -7,7 +7,7 @@ const client = new pg.Client({
     port: 5432,
     user: "postgres",
     password: "password",
-    database: "timescaledb"
+    database: "postgres"
 })
 
 client.connect();
@@ -28,7 +28,35 @@ ws.on('message', (data)=> {
     const parsedData = JSON.parse(data.toString());
     // Handle the parsed data
     const streamData = parsedData.data;
-    console.log(streamData);
+    const insertData = `INSERT INTO master_agg_trade(
+        event_type, 
+        event_time, 
+        symbol, 
+        aggregate_trade_id, 
+        price, 
+        quantity, 
+        trade_time, 
+        market_maker,
+        time
+    ) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`
+
+    const timeObject = new Date(streamData.E);
+
+    const values = [
+        streamData.e,
+        streamData.E,
+        streamData.s,
+        streamData.a,
+        streamData.p,
+        streamData.q,
+        streamData.T,
+        streamData.m,
+        timeObject
+    ]
+    async function dataIngestion() {
+        await client.query(insertData, values);
+    }
+    dataIngestion();
 })
 
 ws.on('close', ()=> {
