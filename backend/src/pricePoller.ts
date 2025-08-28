@@ -21,6 +21,8 @@ ws.on('error', ()=> {
     console.log('Error establishing the websocket connection');
 })
 
+// TODO : add batch processing to make it production ready
+
 ws.on('message', (data)=> {
     const parsedData = JSON.parse(data.toString());
     // Handle the parsed data
