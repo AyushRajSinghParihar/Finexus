@@ -2,7 +2,9 @@ import WebSocket = require("ws");
 import pg = require("pg");
 import redis = require("redis");
 
-const publisher = redis.createClient();
+const publisher = redis.createClient({
+  url: "redis://localhost:6379",
+});
 
 await publisher.connect();
 
@@ -39,7 +41,7 @@ async function flushBuffer() {
       trade.e,
       trade.E,
       trade.s,
-      Number(trade.a),
+      Number(trade.t),
       Number(trade.p),
       Number(trade.q),
       trade.T,
@@ -80,14 +82,13 @@ ws.on("error", () => {
 
 ws.on("message", async (data) => {
   const parsedData = JSON.parse(data.toString());
-  // Handle the parsed data
   const trade = parsedData.data;
 
   buffer.push(trade);
   if (buffer.length >= BATCH_SIZE) {
-    flushBuffer();
+    await flushBuffer();
   }
-  await publisher.publish("btcusdt:trade", JSON.stringify(trade));
+  await publisher.publish("trade:btcusdt", JSON.stringify(trade));
 });
 
 ws.on("close", () => {
