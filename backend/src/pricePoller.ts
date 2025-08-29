@@ -88,7 +88,7 @@ ws.on("message", async (data) => {
   if (buffer.length >= BATCH_SIZE) {
     await flushBuffer();
   }
-  await publisher.publish("trade:btcusdt", JSON.stringify(trade));
+  await publisher.publish("trade:BTCUSDT", JSON.stringify(trade));
 });
 
 ws.on("close", () => {
